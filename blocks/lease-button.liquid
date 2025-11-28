@@ -1,0 +1,261 @@
+{%- liquid
+assign block_settings = block.settings
+assign product_resource = closest.product
+assign selected_variant = product_resource.selected_or_first_available_variant
+-%}
+
+<div class="lease-button-block spacing-style" data-block-id="{{ block.id }}" data-product-id="{{ product_resource.id }}"
+    style="{% render 'spacing-style', settings: block_settings %}" {{ block.shopify_attributes }}>
+    <button type="button" class="lease-button button {{ block_settings.button_style }}" data-lease-button
+        data-product-handle="{{ product_resource.handle }}" data-variant-id="{{ selected_variant.id }}"
+        onclick="handleLeaseButtonClick(this)">
+        <span class="lease-button__icon">
+            {{- 'icon-add-to-cart.svg' | inline_asset_content -}}
+        </span>
+        <span class="lease-button__text">
+            {{ block_settings.button_text | default: 'Lease deze fiets' }}
+        </span>
+    </button>
+</div>
+
+<script>
+  // Global function to get current variant ID from variant picker
+  window.getCurrentVariantId = function(productId) {
+    const variantPicker = document.querySelector(`variant-picker[data-product-id="${productId}"]`);
+    
+    if (!variantPicker) {
+      console.error('Variant picker not found');
+      return null;
+    }
+    
+    // Method 1: Check for selected variant in hidden script tag (most reliable)
+    const variantScript = variantPicker.querySelector('script[type="application/json"]');
+    if (variantScript) {
+      try {
+        const variantData = JSON.parse(variantScript.textContent);
+        if (variantData && variantData.id) {
+          return variantData.id.toString();
+        }
+      } catch (e) {
+        console.error('Error parsing variant script:', e);
+      }
+    }
+    
+    // Method 2: Check for variant ID in checked radio buttons
+    const checkedInputs = variantPicker.querySelectorAll('input[type="radio"]:checked');
+    for (const input of checkedInputs) {
+      const variantId = input.getAttribute('data-variant-id');
+      if (variantId) {
+        return variantId;
+      }
+    }
+    
+    // Method 3: Check select dropdowns
+    const selects = variantPicker.querySelectorAll('select.variant-option__select');
+    for (const select of selects) {
+      const selectedOption = select.options[select.selectedIndex];
+      if (selectedOption) {
+        const variantId = selectedOption.getAttribute('data-variant-id');
+        if (variantId) {
+          return variantId;
+        }
+      }
+    }
+    
+    console.warn('Could not determine variant ID');
+    return null;
+  };
+  
+  // Global function to handle lease button clicks
+  window.handleLeaseButtonClick = function(button) {
+    const productHandle = button.getAttribute('data-product-handle');
+    const productId = button.closest('[data-product-id]').getAttribute('data-product-id');
+    
+    // Get CURRENT variant ID (most reliable method)
+    const variantId = window.getCurrentVariantId(productId);
+    
+    if (!variantId) {
+      alert('Selecteer eerst alle opties voor deze fiets.');
+      return;
+    }
+    
+    // Get lease price from the lease-price block on the same page
+    const leasePriceDisplay = document.querySelector('[data-lease-price-display]');
+    const leasePrice = leasePriceDisplay ? leasePriceDisplay.textContent.trim() : '';
+    
+    // Get product title
+    const productTitle = '{{ product_resource.title | escape }}';
+    
+    // Get variant options
+    const variantPicker = document.querySelector(`variant-picker[data-product-id="${productId}"]`);
+    let variantOptions = {};
+    
+    if (variantPicker) {
+      // Get from radio buttons
+      const checkedInputs = variantPicker.querySelectorAll('input[type="radio"]:checked');
+      checkedInputs.forEach(input => {
+        const optionName = input.name.split('-')[0];
+        variantOptions[optionName] = input.value;
+      });
+      
+      // Get from dropdowns if no radio buttons
+      if (Object.keys(variantOptions).length === 0) {
+        const selects = variantPicker.querySelectorAll('select.variant-option__select');
+        selects.forEach(select => {
+          const label = select.previousElementSibling;
+          const optionName = label ? label.textContent.trim() : select.name;
+          variantOptions[optionName] = select.value;
+        });
+      }
+    }
+    
+    // Store data in sessionStorage for the lease request page
+    const leaseRequestData = {
+      productHandle: productHandle,
+      productTitle: productTitle,
+      productId: productId,
+      variantId: variantId,
+      variantOptions: variantOptions,
+      leasePrice: leasePrice,
+      timestamp: new Date().toISOString()
+    };
+    
+    sessionStorage.setItem('leaseRequest', JSON.stringify(leaseRequestData));
+    
+    // Debug: log to console
+    //console.log('Lease request data:', leaseRequestData);
+    
+    // TODO: Navigate to lease request page
+    // For now, show alert (we'll replace this later)
+    alert('Lease aanvraag voor: ' + productTitle + '\nVariant ID: ' + variantId + '\nLeaseprijs: ' + leasePrice + '\n\nData opgeslagen! Check console voor details.');
+    
+    // Later will be:
+    // window.location.href = '/pages/lease-aanvraag';
+  };
+</script>
+
+{% stylesheet %}
+.lease-button-block {
+width: 100%;
+}
+
+.lease-button {
+width: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: var(--gap-2xs);
+padding-inline: var(--padding-4xl);
+padding-block: var(--padding-lg);
+height: var(--height-buy-buttons);
+text-transform: var(--button-text-case-primary);
+}
+
+.lease-button.button-secondary {
+text-transform: var(--button-text-case-secondary);
+}
+
+.lease-button__icon {
+display: flex;
+align-items: center;
+width: 1.25em;
+height: 1.25em;
+}
+
+.lease-button__icon svg {
+width: 100%;
+height: 100%;
+}
+
+.lease-button__text {
+font-family: inherit;
+font-size: inherit;
+font-weight: inherit;
+line-height: inherit;
+}
+{% endstylesheet %}
+
+{% schema %}
+{
+"name": "Lease Button",
+"tag": null,
+"settings": [
+{
+"type": "paragraph",
+"content": "Button to initiate lease request instead of adding to cart"
+},
+{
+"type": "text",
+"id": "button_text",
+"label": "Button text",
+"default": "Lease deze fiets"
+},
+{
+"type": "select",
+"id": "button_style",
+"label": "Button style",
+"options": [
+{
+"value": "button",
+"label": "Primary"
+},
+{
+"value": "button-secondary",
+"label": "Secondary"
+}
+],
+"default": "button"
+},
+{
+"type": "header",
+"content": "Padding"
+},
+{
+"type": "range",
+"id": "padding-block-start",
+"label": "Top",
+"min": 0,
+"max": 100,
+"step": 1,
+"unit": "px",
+"default": 0
+},
+{
+"type": "range",
+"id": "padding-block-end",
+"label": "Bottom",
+"min": 0,
+"max": 100,
+"step": 1,
+"unit": "px",
+"default": 0
+},
+{
+"type": "range",
+"id": "padding-inline-start",
+"label": "Left",
+"min": 0,
+"max": 100,
+"step": 1,
+"unit": "px",
+"default": 0
+},
+{
+"type": "range",
+"id": "padding-inline-end",
+"label": "Right",
+"min": 0,
+"max": 100,
+"step": 1,
+"unit": "px",
+"default": 0
+}
+],
+"presets": [
+{
+"name": "Lease Button",
+"category": "Product"
+}
+]
+}
+{% endschema %}

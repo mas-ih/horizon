@@ -1,0 +1,13 @@
+{%- comment -%}
+  Redirect cart and checkout pages to products page for lease-only store
+{%- endcomment -%}
+
+{%- if template.name == 'cart' -%}
+  <script>
+    // Redirect cart page to products
+    window.location.href = '{{ routes.all_products_collection_url }}';
+  </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0; url={{ routes.all_products_collection_url }}">
+  </noscript>
+{%- endif -%}

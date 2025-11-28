@@ -186,40 +186,17 @@
               },
               "blocks": {}
             },
-            "buy_buttons_eYQEYi": {
-              "type": "buy-buttons",
+           "lease_button_custom": {
+              "type": "lease-button",
               "settings": {
-                "stacking": true,
-                "show_pickup_availability": false,
-                "gift_card_form": true,
+                "button_text": "Lease deze fiets",
+                "button_style": "button",
                 "padding-block-start": 0,
                 "padding-block-end": 0,
                 "padding-inline-start": 0,
                 "padding-inline-end": 0
               },
-              "blocks": {
-                "quantity": {
-                  "type": "quantity",
-                  "static": true,
-                  "settings": {},
-                  "blocks": {}
-                },
-                "add-to-cart": {
-                  "type": "add-to-cart",
-                  "static": true,
-                  "settings": {
-                    "style_class": "button"
-                  },
-                  "blocks": {}
-                },
-                "accelerated-checkout": {
-                  "type": "accelerated-checkout",
-                  "static": true,
-                  "settings": {},
-                  "blocks": {}
-                }
-              },
-              "block_order": []
+              "blocks": {}
             },
             "text_aEtTtq": {
               "type": "text",
@@ -269,7 +246,7 @@
             "divider_VJhene",
             "variant_picker_R3rGDr",
             "lease_price_custom",
-            "buy_buttons_eYQEYi",
+            "lease_button_custom",
             "text_aEtTtq"
           ]
         }

@@ -2,20 +2,6 @@
   box-sizing: border-box;
 }
 
-/* Custom CSS to hide cart and buy buttons*/
-cart-drawer-component {
-  display: none !important;
-}
-
-.buy-buttons-block{
-  display: none !important;
-}
-
-[data-type|="add-to-cart-form"] {
-  display: none !important;
-}
-/* End custom css*/
-
 body {
   color: var(--color-foreground);
   background: var(--color-background);
