@@ -7,7 +7,7 @@
  * made to this file may be overwritten.
  * ------------------------------------------------------------
  */
- {
+{
   "sections": {
     "main": {
       "type": "product-information",
@@ -71,8 +71,6 @@
               "type": "group",
               "name": "Header",
               "settings": {
-                "link": "",
-                "open_in_new_tab": false,
                 "content_direction": "column",
                 "vertical_on_mobile": true,
                 "horizontal_alignment": "flex-start",
@@ -96,11 +94,13 @@
                 "border_width": 1,
                 "border_opacity": 100,
                 "border_radius": 0,
-                "placeholder": "",
                 "toggle_overlay": false,
                 "overlay_color": "#00000026",
                 "overlay_style": "solid",
                 "gradient_direction": "to top",
+                "link": "",
+                "open_in_new_tab": false,
+                "placeholder": "",
                 "padding-block-start": 0,
                 "padding-block-end": 0,
                 "padding-inline-start": 0,
@@ -186,8 +186,25 @@
               },
               "blocks": {}
             },
+            "lease_price_custom": {
+              "type": "lease-price",
+              "settings": {
+                "label": "Vanaf",
+                "suffix": "p/m",
+                "fallback_text": "Prijs op aanvraag",
+                "label_type_preset": "h6",
+                "price_type_preset": "h7",
+                "suffix_type_preset": "h6",
+                "padding-block-start": 4,
+                "padding-block-end": 12,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
             "buy_buttons_eYQEYi": {
               "type": "buy-buttons",
+              "disabled": true,
               "settings": {
                 "stacking": true,
                 "show_pickup_availability": false,
@@ -242,22 +259,6 @@
                 "corner_radius": 0,
                 "padding-block-start": 0,
                 "padding-block-end": 0,
-                "padding-inline-start": 0,
-                "padding-inline-end": 0
-              },
-              "blocks": {}
-            },
-            "lease_price_custom": {
-              "type": "lease-price",
-              "settings": {
-                "label": "Vanaf",
-                "suffix": "per maand",
-                "fallback_text": "Prijs op aanvraag",
-                "label_type_preset": "paragraph",
-                "price_type_preset": "h7",
-                "suffix_type_preset": "paragraph",
-                "padding-block-start": 4,
-                "padding-block-end": 12,
                 "padding-inline-start": 0,
                 "padding-inline-end": 0
               },
