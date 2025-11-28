@@ -1,3 +1,7 @@
+{%- comment -%}
+  CUSTOM: Hide cart for lease-only store
+{%- endcomment -%}
+{%- assign hide_cart = true -%}
 <script
   type="module"
   src="{{ 'cart-icon.js' | asset_url }}"
@@ -13,7 +17,9 @@
   {% endif %}
 
   {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
-    {% render 'cart-drawer' %}
+    {%- unless hide_cart -%}
+      {% render 'cart-drawer' %}
+    {%- endunless -%}
   {% else %}
     <a
       href="{{ routes.cart_url }}"
