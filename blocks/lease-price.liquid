@@ -1,0 +1,309 @@
+{%- liquid
+  assign block_settings = block.settings
+  assign product_resource = closest.product
+  assign selected_variant = product_resource.selected_or_first_available_variant
+-%}
+
+{%- comment -%}
+  Build JavaScript object with all variant lease prices
+  This is rendered server-side once, then used client-side for updates
+{%- endcomment -%}
+
+<div
+  class="lease-price-block spacing-style"
+  data-block-id="{{ block.id }}"
+  data-product-id="{{ product_resource.id }}"
+  style="{% render 'spacing-style', settings: block_settings %}"
+  {{ block.shopify_attributes }}
+>
+  <div class="lease-price-wrapper">
+    {%- if block_settings.label != blank -%}
+      <span class="lease-price-label {{ block_settings.label_type_preset }}">
+        {{ block_settings.label }}
+      </span>
+    {%- endif -%}
+    
+    <span 
+      class="lease-price-value {{ block_settings.price_type_preset }}"
+      data-lease-price-display
+    >
+      {%- if selected_variant.metafields.custom.leaseprice != blank -%}
+        €{{ selected_variant.metafields.custom.leaseprice | round: 2 }}
+      {%- else -%}
+        {{ block_settings.fallback_text | default: 'Prijs op aanvraag' }}
+      {%- endif -%}
+    </span>
+
+    {%- if block_settings.suffix != blank -%}
+      <span class="lease-price-suffix {{ block_settings.suffix_type_preset }}">
+        {{ block_settings.suffix }}
+      </span>
+    {%- endif -%}
+  </div>
+</div>
+
+{%- comment -%}
+  Render all variant lease prices as JSON for JavaScript
+{%- endcomment -%}
+<script type="application/json" data-lease-prices data-product-id="{{ product_resource.id }}">
+  {
+    {%- for variant in product_resource.variants -%}
+      "{{ variant.id }}": {
+        "price": {{ variant.metafields.custom.leaseprice | default: 0 | json }},
+        "formatted": "€{{ variant.metafields.custom.leaseprice | default: 0 | round: 2 }}"
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  }
+</script>
+
+<script>
+  // Self-executing function to avoid global scope pollution
+  (function() {
+    const productId = '{{ product_resource.id }}';
+    const blockElement = document.querySelector('[data-block-id="{{ block.id }}"]');
+    const priceDisplay = blockElement?.querySelector('[data-lease-price-display]');
+    const leasePricesScript = document.querySelector(`[data-lease-prices][data-product-id="${productId}"]`);
+    
+    if (!priceDisplay || !leasePricesScript) {
+      console.warn('Lease price elements not found');
+      return;
+    }
+
+    // Parse the lease prices JSON
+    let leasePrices;
+    try {
+      leasePrices = JSON.parse(leasePricesScript.textContent);
+    } catch (error) {
+      console.error('Failed to parse lease prices:', error);
+      return;
+    }
+
+    // Find the variant picker component
+    const variantPicker = document.querySelector(`variant-picker[data-product-id="${productId}"]`);
+    
+    if (!variantPicker) {
+      console.warn('Variant picker not found');
+      return;
+    }
+
+    // Function to update lease price display
+    function updateLeasePrice(variantId) {
+      const leaseData = leasePrices[variantId];
+      
+      if (leaseData && leaseData.price > 0) {
+        priceDisplay.textContent = leaseData.formatted;
+      } else {
+        priceDisplay.textContent = '{{ block_settings.fallback_text | default: "Prijs op aanvraag" }}';
+      }
+    }
+
+    // Listen for changes on radio buttons (button style variant picker)
+    variantPicker.addEventListener('change', function(event) {
+      const target = event.target;
+      
+      // Check if it's a variant option input
+      if (target.matches('input[type="radio"][data-variant-id]')) {
+        const variantId = target.getAttribute('data-variant-id');
+        if (variantId) {
+          updateLeasePrice(variantId);
+        }
+      }
+    });
+
+    // Listen for changes on select elements (dropdown style variant picker)
+    const selectElements = variantPicker.querySelectorAll('select.variant-option__select');
+    selectElements.forEach(function(select) {
+      select.addEventListener('change', function() {
+        // Get selected option's variant ID
+        const selectedOption = select.options[select.selectedIndex];
+        const variantId = selectedOption.getAttribute('data-variant-id');
+        
+        if (variantId) {
+          updateLeasePrice(variantId);
+        }
+      });
+    });
+
+    // Also listen for custom events that Horizon's variant picker might dispatch
+    variantPicker.addEventListener('variant:change', function(event) {
+      if (event.detail && event.detail.variant && event.detail.variant.id) {
+        updateLeasePrice(event.detail.variant.id);
+      }
+    });
+
+  })();
+</script>
+
+{% stylesheet %}
+  .lease-price-block {
+    width: 100%;
+  }
+
+  .lease-price-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: var(--padding-xs, 8px);
+    flex-wrap: wrap;
+  }
+
+  .lease-price-label {
+    font-weight: var(--font-paragraph--weight);
+  }
+
+  .lease-price-value {
+    font-weight: var(--font-heading--weight, 600);
+    color: var(--color-foreground);
+  }
+
+  .lease-price-suffix {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Lease Price",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Displays the lease price from variant metafield custom.leaseprice"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Leaseprijs:",
+      "info": "Text shown before the price"
+    },
+    {
+      "type": "text",
+      "id": "suffix",
+      "label": "Suffix",
+      "default": "per maand",
+      "info": "Text shown after the price"
+    },
+    {
+      "type": "text",
+      "id": "fallback_text",
+      "label": "Fallback text",
+      "default": "Prijs op aanvraag",
+      "info": "Shown when no lease price is set"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "label_type_preset",
+      "label": "Label style",
+      "options": [
+        {
+          "value": "paragraph",
+          "label": "Paragraph"
+        },
+        {
+          "value": "h6",
+          "label": "Heading 6"
+        }
+      ],
+      "default": "paragraph"
+    },
+    {
+      "type": "select",
+      "id": "price_type_preset",
+      "label": "Price style",
+      "options": [
+        {
+          "value": "h3",
+          "label": "Heading 3"
+        },
+        {
+          "value": "h4",
+          "label": "Heading 4"
+        },
+        {
+          "value": "h5",
+          "label": "Heading 5"
+        },
+        {
+          "value": "h6",
+          "label": "Heading 6"
+        }
+      ],
+      "default": "h4"
+    },
+    {
+      "type": "select",
+      "id": "suffix_type_preset",
+      "label": "Suffix style",
+      "options": [
+        {
+          "value": "paragraph",
+          "label": "Paragraph"
+        },
+        {
+          "value": "h6",
+          "label": "Heading 6"
+        }
+      ],
+      "default": "paragraph"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "Left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "Right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Lease Price",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
