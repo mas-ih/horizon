@@ -1,0 +1,793 @@
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div class="lease-request-section section section--page-width color-{{ section.settings.color_scheme }} spacing-style"
+     style="{% render 'spacing-style', settings: section.settings %}"
+     data-section-id="{{ section.id }}">
+  
+  <div class="lease-request-container">
+    {%- if section.settings.heading != blank -%}
+      <h1 class="lease-request-heading">{{ section.settings.heading }}</h1>
+    {%- endif -%}
+    
+    {%- if section.settings.subheading != blank -%}
+      <p class="lease-request-subheading">{{ section.settings.subheading }}</p>
+    {%- endif -%}
+
+    {%- comment -%} Error state - shown when no sessionStorage data {%- endcomment -%}
+    <div class="lease-request-error hidden" data-no-data-error>
+      <div class="lease-request-error__content">
+        <span class="svg-wrapper">
+          {{- 'icon-error.svg' | inline_asset_content -}}
+        </span>
+        <div>
+          <h2>Geen product geselecteerd</h2>
+          <p>Je hebt nog geen fiets gekozen. Ga terug naar onze collectie en selecteer een fiets om te leasen.</p>
+          <a href="{{ routes.all_products_collection_url }}" class="button">
+            Bekijk fietsen
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {%- comment -%} Form - hidden until data is loaded {%- endcomment -%}
+    <form class="lease-request-form hidden" 
+          id="lease-request-form"
+          data-lease-form
+          novalidate>
+      
+      {%- comment -%} Product Information Section {%- endcomment -%}
+      <div class="form-section">
+        <h2 class="form-section-title">Geselecteerde Fiets</h2>
+        
+        <div class="form-group form-group--readonly">
+          <label class="form-label">Merk</label>
+          <div class="form-readonly-value" data-field="vendor">-</div>
+        </div>
+
+        <div class="form-group form-group--readonly">
+          <label class="form-label">Type</label>
+          <div class="form-readonly-value" data-field="productTitle">-</div>
+        </div>
+
+        {%- comment -%} Variant options - dynamically filled {%- endcomment -%}
+        <div class="variant-options" data-variant-options>
+          {%- comment -%} JavaScript will populate this {%- endcomment -%}
+        </div>
+
+        <div class="form-group form-group--readonly form-group--highlight">
+          <label class="form-label">Leaseprijs per maand</label>
+          <div class="form-readonly-value form-readonly-value--price" data-field="leasePrice">-</div>
+        </div>
+      </div>
+
+      {%- comment -%} Customer Information Section {%- endcomment -%}
+      <div class="form-section">
+        <h2 class="form-section-title">Jouw Gegevens</h2>
+        
+        <div class="form-group">
+          <label for="customer-name" class="form-label">
+            Naam <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="customer-name" 
+            name="name"
+            class="form-input"
+            required
+            placeholder="Voor- en achternaam"
+            data-customer-field>
+          <span class="form-error" data-error="name"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="customer-email" class="form-label">
+            E-mailadres <span class="required">*</span>
+          </label>
+          <input 
+            type="email" 
+            id="customer-email" 
+            name="email"
+            class="form-input"
+            required
+            placeholder="jouw@email.nl"
+            data-customer-field>
+          <span class="form-error" data-error="email"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="customer-phone" class="form-label">
+            Telefoonnummer <span class="required">*</span>
+          </label>
+          <input 
+            type="tel" 
+            id="customer-phone" 
+            name="phone"
+            class="form-input"
+            required
+            placeholder="06 12345678"
+            data-customer-field>
+          <span class="form-error" data-error="phone"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="customer-company" class="form-label">
+            Bedrijfsnaam <span class="optional">(optioneel)</span>
+          </label>
+          <input 
+            type="text" 
+            id="customer-company" 
+            name="company"
+            class="form-input"
+            placeholder="Jouw bedrijf B.V."
+            data-customer-field>
+        </div>
+
+        <div class="form-group">
+          <label for="customer-message" class="form-label">
+            Aanvullende opmerkingen <span class="optional">(optioneel)</span>
+          </label>
+          <textarea 
+            id="customer-message" 
+            name="message"
+            class="form-textarea"
+            rows="4"
+            placeholder="Eventuele vragen of opmerkingen..."
+            data-customer-field></textarea>
+        </div>
+      </div>
+
+      {%- comment -%} Hidden fields for backend {%- endcomment -%}
+      <input type="hidden" name="product_id" data-hidden="productId">
+      <input type="hidden" name="variant_id" data-hidden="variantId">
+      <input type="hidden" name="lease_price" data-hidden="leasePriceValue">
+      <input type="hidden" name="timestamp" data-hidden="timestamp">
+
+      {%- comment -%} Honeypot for spam protection {%- endcomment -%}
+      <input type="text" name="honeypot" class="visually-hidden" tabindex="-1" autocomplete="off">
+
+      {%- comment -%} Submit Section {%- endcomment -%}
+      <div class="form-actions">
+        <button type="submit" class="button button--primary lease-request-submit" data-submit-button>
+          <span data-submit-text>{{ section.settings.submit_button_text }}</span>
+          <span data-submit-loading class="hidden">Versturen...</span>
+        </button>
+        <a href="{{ routes.all_products_collection_url }}" class="button button--secondary">
+          Terug naar fietsen
+        </a>
+      </div>
+
+      {%- comment -%} Form-level error message {%- endcomment -%}
+      <div class="form-message form-message--error hidden" data-form-error role="alert">
+        <span class="svg-wrapper">
+          {{- 'icon-error.svg' | inline_asset_content -}}
+        </span>
+        <span data-form-error-text>{{ section.settings.error_message }}</span>
+      </div>
+    </form>
+
+    {%- comment -%} Success state - shown after submission {%- endcomment -%}
+    <div class="lease-request-success hidden" data-success-message>
+      <div class="lease-request-success__content">
+        <span class="svg-wrapper svg-wrapper--success">
+          {{- 'icon-checkmark.svg' | inline_asset_content -}}
+        </span>
+        <div>
+          <h2>Aanvraag verzonden!</h2>
+          <p>{{ section.settings.success_message }}</p>
+          <a href="{{ routes.all_products_collection_url }}" class="button">
+            Terug naar fietsen
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+  
+  const form = document.querySelector('[data-lease-form]');
+  const noDataError = document.querySelector('[data-no-data-error]');
+  const successMessage = document.querySelector('[data-success-message]');
+  const submitButton = document.querySelector('[data-submit-button]');
+  const formError = document.querySelector('[data-form-error]');
+  
+  // Load data from sessionStorage
+  function loadLeaseData() {
+    try {
+      const dataString = sessionStorage.getItem('leaseRequest');
+      
+      if (!dataString) {
+        showNoDataError();
+        return null;
+      }
+      
+      const data = JSON.parse(dataString);
+      
+      // Validate required fields
+      if (!data.productTitle || !data.variantId || !data.leasePrice) {
+        showNoDataError();
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error loading lease data:', error);
+      showNoDataError();
+      return null;
+    }
+  }
+  
+  // Show no data error state
+  function showNoDataError() {
+    noDataError.classList.remove('hidden');
+    form.classList.add('hidden');
+  }
+  
+  // Populate form with data
+  function populateForm(data) {
+    // Product info
+    setFieldValue('vendor', data.productVendor || 'n/a');
+    setFieldValue('productTitle', data.productTitle);
+    setFieldValue('leasePrice', data.leasePrice);
+    
+    // Variant options
+    populateVariantOptions(data.variantOptions);
+    
+    // Hidden fields
+    setHiddenField('productId', data.productId);
+    setHiddenField('variantId', data.variantId);
+    setHiddenField('leasePriceValue', data.leasePrice.replace(/[^0-9.,]/g, ''));
+    setHiddenField('timestamp', data.timestamp);
+    
+    // Show form
+    form.classList.remove('hidden');
+  }
+  
+  // Set field value
+  function setFieldValue(fieldName, value) {
+    const field = document.querySelector(`[data-field="${fieldName}"]`);
+    if (field) {
+      field.textContent = value || '-';
+    }
+  }
+  
+  // Set hidden field value
+  function setHiddenField(fieldName, value) {
+    const field = document.querySelector(`[data-hidden="${fieldName}"]`);
+    if (field) {
+      field.value = value || '';
+    }
+  }
+  
+  // Populate variant options
+  function populateVariantOptions(options) {
+    const container = document.querySelector('[data-variant-options]');
+    if (!container || !options) return;
+    
+    container.innerHTML = '';
+    
+    Object.entries(options).forEach(([key, value]) => {
+      const div = document.createElement('div');
+      div.className = 'form-group form-group--readonly';
+      div.innerHTML = `
+        <label class="form-label">${escapeHtml(key)}</label>
+        <div class="form-readonly-value">${escapeHtml(value)}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+  
+  // Escape HTML
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // Validate form
+  function validateForm() {
+    let isValid = true;
+    
+    // Clear previous errors
+    document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.form-input, .form-textarea').forEach(el => {
+      el.classList.remove('form-input--error');
+    });
+    
+    // Validate required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+      if (!field.value.trim()) {
+        showFieldError(field, 'Dit veld is verplicht');
+        isValid = false;
+      }
+    });
+    
+    // Validate email
+    const emailField = form.querySelector('[type="email"]');
+    if (emailField && emailField.value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailField.value.trim())) {
+        showFieldError(emailField, 'Voer een geldig e-mailadres in');
+        isValid = false;
+      }
+    }
+    
+    // Validate phone
+    const phoneField = form.querySelector('[type="tel"]');
+    if (phoneField && phoneField.value.trim()) {
+      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+      if (!phoneRegex.test(phoneField.value.trim()) || phoneField.value.trim().length < 10) {
+        showFieldError(phoneField, 'Voer een geldig telefoonnummer in');
+        isValid = false;
+      }
+    }
+    
+    // Check honeypot
+    const honeypot = form.querySelector('[name="honeypot"]');
+    if (honeypot && honeypot.value) {
+      isValid = false;
+    }
+    
+    return isValid;
+  }
+  
+  // Show field error
+  function showFieldError(field, message) {
+    field.classList.add('form-input--error');
+    const errorEl = document.querySelector(`[data-error="${field.name}"]`);
+    if (errorEl) {
+      errorEl.textContent = message;
+    }
+  }
+  
+  // Handle form submission
+  function handleSubmit(event) {
+    event.preventDefault();
+    
+    // Validate
+    if (!validateForm()) {
+      return;
+    }
+    
+    // Disable submit button
+    submitButton.disabled = true;
+    document.querySelector('[data-submit-text]').classList.add('hidden');
+    document.querySelector('[data-submit-loading]').classList.remove('hidden');
+    
+    // Collect form data
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Remove honeypot from data
+    delete data.honeypot;
+    
+    // TODO: Replace this with actual API call to your custom app
+    console.log('Form data to submit:', data);
+    
+    // Simulate API call (for MVP)
+    setTimeout(() => {
+      // Show success message
+      showSuccess();
+      
+      // Clear sessionStorage
+      sessionStorage.removeItem('leaseRequest');
+      
+      // Re-enable button (in case user goes back)
+      submitButton.disabled = false;
+      document.querySelector('[data-submit-text]').classList.remove('hidden');
+      document.querySelector('[data-submit-loading]').classList.add('hidden');
+    }, 1000);
+    
+    // LATER: Replace above with actual fetch call
+    /*
+    fetch('YOUR_CUSTOM_APP_URL', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(result => {
+      showSuccess();
+      sessionStorage.removeItem('leaseRequest');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showError();
+    })
+    .finally(() => {
+      submitButton.disabled = false;
+      document.querySelector('[data-submit-text]').classList.remove('hidden');
+      document.querySelector('[data-submit-loading]').classList.add('hidden');
+    });
+    */
+  }
+  
+  // Show success state
+  function showSuccess() {
+    form.classList.add('hidden');
+    successMessage.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  // Show error state
+  function showError() {
+    formError.classList.remove('hidden');
+    window.scrollTo({ top: formError.offsetTop - 100, behavior: 'smooth' });
+  }
+  
+  // Initialize
+  function init() {
+    const data = loadLeaseData();
+    if (data) {
+      populateForm(data);
+    }
+    
+    // Add form submit listener
+    if (form) {
+      form.addEventListener('submit', handleSubmit);
+    }
+    
+    // Real-time validation feedback
+    const inputs = form.querySelectorAll('[data-customer-field]');
+    inputs.forEach(input => {
+      input.addEventListener('blur', () => {
+        if (input.hasAttribute('required') && !input.value.trim()) {
+          showFieldError(input, 'Dit veld is verplicht');
+        } else {
+          input.classList.remove('form-input--error');
+          const errorEl = document.querySelector(`[data-error="${input.name}"]`);
+          if (errorEl) errorEl.textContent = '';
+        }
+      });
+    });
+  }
+  
+  // Run on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+{% stylesheet %}
+  .lease-request-section {
+    width: 100%;
+  }
+
+  .lease-request-container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .lease-request-heading {
+    margin-bottom: var(--margin-md);
+    text-align: center;
+  }
+
+  .lease-request-subheading {
+    text-align: center;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+    margin-bottom: var(--margin-2xl);
+  }
+
+  /* Form sections */
+  .form-section {
+    background: var(--color-background);
+    border: var(--style-border-width) solid var(--color-border);
+    border-radius: var(--style-border-radius-inputs);
+    padding: var(--padding-xl);
+    margin-bottom: var(--margin-xl);
+  }
+
+  .form-section-title {
+    font-size: var(--font-size--lg);
+    margin-bottom: var(--margin-lg);
+    padding-bottom: var(--padding-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* Form groups */
+  .form-group {
+    margin-bottom: var(--margin-lg);
+  }
+
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-label {
+    display: block;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--margin-xs);
+    font-size: var(--font-size--sm);
+  }
+
+  .required {
+    color: var(--color-error, #d00);
+  }
+
+  .optional {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-60));
+    font-weight: normal;
+  }
+
+  /* Form inputs */
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    background-color: var(--color-input-background);
+    color: var(--color-input-text);
+    border: var(--style-border-width-inputs) solid var(--color-input-border);
+    border-radius: var(--style-border-radius-inputs);
+    padding: var(--padding-sm) var(--padding-md);
+    font-family: inherit;
+    font-size: var(--font-size--md);
+    transition: border-color 0.2s ease;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--color-foreground);
+    box-shadow: 0 0 0 1px var(--color-foreground);
+  }
+
+  .form-input--error {
+    border-color: var(--color-error, #d00);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  /* Readonly fields */
+  .form-group--readonly {
+    background: rgb(var(--color-foreground-rgb) / 0.03);
+    padding: var(--padding-md);
+    border-radius: var(--style-border-radius-inputs);
+  }
+
+  .form-group--readonly .form-label {
+    font-size: var(--font-size--xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-60));
+    margin-bottom: var(--margin-2xs);
+  }
+
+  .form-readonly-value {
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size--md);
+  }
+
+  .form-group--highlight {
+    background: var(--color-primary, #000);
+    color: var(--color-background, #fff);
+  }
+
+  .form-group--highlight .form-label {
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  .form-readonly-value--price {
+    font-size: var(--font-size--2xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  /* Variant options */
+  .variant-options {
+    display: grid;
+    gap: var(--gap-sm);
+  }
+
+  @media screen and (min-width: 750px) {
+    .variant-options {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Form errors */
+  .form-error {
+    display: block;
+    color: var(--color-error, #d00);
+    font-size: var(--font-size--sm);
+    margin-top: var(--margin-2xs);
+    min-height: 1.2em;
+  }
+
+  /* Form actions */
+  .form-actions {
+    display: flex;
+    gap: var(--gap-md);
+    flex-wrap: wrap;
+    margin-top: var(--margin-2xl);
+  }
+
+  .form-actions .button {
+    flex: 1;
+    min-width: 200px;
+    justify-content: center;
+  }
+
+  @media screen and (max-width: 749px) {
+    .form-actions {
+      flex-direction: column;
+    }
+    
+    .form-actions .button {
+      width: 100%;
+    }
+  }
+
+  /* Form messages */
+  .form-message {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+    padding: var(--padding-md);
+    border-radius: var(--style-border-radius-inputs);
+    margin-top: var(--margin-lg);
+  }
+
+  .form-message--error {
+    background: rgb(255 0 0 / 0.1);
+    border: 1px solid rgb(255 0 0 / 0.3);
+    color: var(--color-error, #d00);
+  }
+
+  .form-message .svg-wrapper {
+    flex-shrink: 0;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+
+  /* Error state */
+  .lease-request-error {
+    text-align: center;
+    padding: var(--padding-4xl) var(--padding-xl);
+  }
+
+  .lease-request-error__content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .lease-request-error .svg-wrapper {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--margin-lg);
+    color: var(--color-error, #d00);
+  }
+
+  .lease-request-error h2 {
+    margin-bottom: var(--margin-md);
+  }
+
+  .lease-request-error p {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+    margin-bottom: var(--margin-xl);
+  }
+
+  /* Success state */
+  .lease-request-success {
+    text-align: center;
+    padding: var(--padding-4xl) var(--padding-xl);
+  }
+
+  .lease-request-success__content {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .svg-wrapper--success {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--margin-lg);
+    color: var(--color-success, #00a000);
+  }
+
+  .lease-request-success h2 {
+    margin-bottom: var(--margin-md);
+  }
+
+  .lease-request-success p {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+    margin-bottom: var(--margin-xl);
+  }
+
+  /* Utility */
+  .hidden {
+    display: none !important;
+  }
+
+  /* Loading state */
+  [data-submit-button]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Lease Request Form",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Lease Aanvraag"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Vul onderstaand formulier in om een vrijblijvende offerte aan te vragen."
+    },
+    {
+      "type": "text",
+      "id": "submit_button_text",
+      "label": "Submit Button Text",
+      "default": "Verstuur aanvraag"
+    },
+    {
+      "type": "textarea",
+      "id": "success_message",
+      "label": "Success Message",
+      "default": "Bedankt voor je aanvraag! We nemen binnen 24 uur contact met je op."
+    },
+    {
+      "type": "textarea",
+      "id": "error_message",
+      "label": "Error Message",
+      "default": "Er is iets misgegaan. Probeer het opnieuw of neem contact met ons op."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color Scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "Lease Request Form",
+      "category": "Forms"
+    }
+  ]
+}
+{% endschema %}

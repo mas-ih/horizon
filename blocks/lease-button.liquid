@@ -127,10 +127,13 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     
     // TODO: Navigate to lease request page
     // For now, show alert (we'll replace this later)
-    alert('Lease aanvraag voor: ' + productTitle + '\nVariant ID: ' + variantId + '\nLeaseprijs: ' + leasePrice + '\n\nData opgeslagen! Check console voor details.');
+   // alert('Lease aanvraag voor: ' + productTitle + '\nVariant ID: ' + variantId + '\nLeaseprijs: ' + leasePrice + '\n\nData opgeslagen! Check console voor details.');
     
-    // Later will be:
-    // window.location.href = '/pages/lease-aanvraag';
+    // Navigate to lease request page
+    // Add small delay to ensure sessionStorage is saved
+    setTimeout(function() {
+      window.location.href = '/pages/lease-aanvraag';
+    }, 100);
   };
 </script>
 

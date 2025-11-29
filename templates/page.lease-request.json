@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "main": {
+      "type": "lease-request-form",
+      "settings": {
+        "heading": "Lease Aanvraag",
+        "subheading": "Tekst voor de subheading.",
+        "success_message": "Bedankt voor je aanvraag!.",
+        "error_message": "Er is iets misgegaan. Probeer het opnieuw of neem contact met ons op.",
+        "submit_button_text": "Verstuur aanvraag",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
