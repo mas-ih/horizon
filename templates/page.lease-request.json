@@ -4,10 +4,11 @@
       "type": "lease-request-form",
       "settings": {
         "heading": "Lease Aanvraag",
-        "subheading": "Tekst voor de subheading.",
-        "success_message": "Bedankt voor je aanvraag!.",
+        "subheading": "<p>Vul onderstaand formulier in om een vrijblijvende offerte aan te vragen.</p>",
+        "success_message": "Bedankt voor je aanvraag! We hebben je aanvraag ontvangen en gaan voor je aan de slag..",
         "error_message": "Er is iets misgegaan. Probeer het opnieuw of neem contact met ons op.",
         "submit_button_text": "Verstuur aanvraag",
+        "privacy_text": "Voor jouw gegevens zijn Elbuco B.V. en Fietsleasewinkel gezamenlijk verantwoordelijk. Lees hier meer over in het <a href=\"/pages/privacy-elbuco\" target=\"_blank\">privacy statement van Elbuco B.V.</a> en het <a href=\"/pages/privacy-fietsleasewinkel\" target=\"_blank\">privacy statement van Fietsleasewinkel</a>.",
         "color_scheme": "scheme-1",
         "padding-block-start": 48,
         "padding-block-end": 48

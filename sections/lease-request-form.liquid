@@ -3,179 +3,382 @@
      style="{% render 'spacing-style', settings: section.settings %}"
      data-section-id="{{ section.id }}">
   
-  <div class="lease-request-container">
-    {%- if section.settings.heading != blank -%}
-      <h1 class="lease-request-heading">{{ section.settings.heading }}</h1>
-    {%- endif -%}
+  <div class="lease-request-layout">
     
-    {%- if section.settings.subheading != blank -%}
-      <p class="lease-request-subheading">{{ section.settings.subheading }}</p>
-    {%- endif -%}
-
-    {%- comment -%} Error state - shown when no sessionStorage data {%- endcomment -%}
-    <div class="lease-request-error hidden" data-no-data-error>
-      <div class="lease-request-error__content">
-        <span class="svg-wrapper">
-          {{- 'icon-error.svg' | inline_asset_content -}}
-        </span>
-        <div>
-          <h2>Geen product geselecteerd</h2>
-          <p>Je hebt nog geen fiets gekozen. Ga terug naar onze collectie en selecteer een fiets om te leasen.</p>
-          <a href="{{ routes.all_products_collection_url }}" class="button">
-            Bekijk fietsen
-          </a>
+    {%- comment -%} Left Column - Dynamic Section {%- endcomment -%}
+    <div class="lease-request-sidebar">
+      {%- if section.settings.heading != blank -%}
+        <h1 class="lease-request-heading">{{ section.settings.heading }}</h1>
+      {%- endif -%}
+      
+      {%- if section.settings.subheading != blank -%}
+        <div class="lease-request-subheading rte">
+          {{ section.settings.subheading }}
         </div>
+      {%- endif -%}
+
+      {%- comment -%} Render blocks for custom content {%- endcomment -%}
+      <div class="lease-request-content">
+        {% for block in section.blocks %}
+          <div {{ block.shopify_attributes }}>
+            {% case block.type %}
+              {% when 'text' %}
+                <div class="content-block content-block--text">
+                  {% if block.settings.heading != blank %}
+                    <h3>{{ block.settings.heading }}</h3>
+                  {% endif %}
+                  <div class="rte">
+                    {{ block.settings.text }}
+                  </div>
+                </div>
+              
+              {% when 'icon_with_text' %}
+                <div class="content-block content-block--icon">
+                  <div class="icon-with-text-item">
+                    {% if block.settings.icon != blank %}
+                      <div class="icon-wrapper">
+                        {% render 'icon', icon: block.settings.icon %}
+                      </div>
+                    {% endif %}
+                    <div class="icon-content">
+                      {% if block.settings.heading != blank %}
+                        <h4>{{ block.settings.heading }}</h4>
+                      {% endif %}
+                      {% if block.settings.text != blank %}
+                        <p>{{ block.settings.text }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              
+              {% when 'image' %}
+                <div class="content-block content-block--image">
+                  {% if block.settings.image != blank %}
+                    <img src="{{ block.settings.image | image_url: width: 600 }}" 
+                         alt="{{ block.settings.image.alt | escape }}"
+                         loading="lazy">
+                  {% endif %}
+                </div>
+            {% endcase %}
+          </div>
+        {% endfor %}
       </div>
     </div>
 
-    {%- comment -%} Form - hidden until data is loaded {%- endcomment -%}
-    <form class="lease-request-form hidden" 
-          id="lease-request-form"
-          data-lease-form
-          novalidate>
+    {%- comment -%} Right Column - Form {%- endcomment -%}
+    <div class="lease-request-form-wrapper">
       
-      {%- comment -%} Product Information Section {%- endcomment -%}
-      <div class="form-section">
-        <h2 class="form-section-title">Geselecteerde Fiets</h2>
+      {%- comment -%} Error state - no sessionStorage data {%- endcomment -%}
+      <div class="lease-request-error hidden" data-no-data-error>
+        <div class="lease-request-error__content">
+          <span class="svg-wrapper">
+            {{- 'icon-error.svg' | inline_asset_content -}}
+          </span>
+          <div>
+            <h2>Geen product geselecteerd</h2>
+            <p>Je hebt nog geen fiets gekozen. Ga terug naar onze collectie en selecteer een fiets om te leasen.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="button">
+              Bekijk fietsen
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {%- comment -%} Form {%- endcomment -%}
+      <form class="lease-form hidden" 
+            id="lease-request-form"
+            data-lease-form
+            novalidate>
         
-        <div class="form-group form-group--readonly">
-          <label class="form-label">Merk</label>
-          <div class="form-readonly-value" data-field="vendor">-</div>
+        {%- comment -%} Product Information Grid {%- endcomment -%}
+        <div class="form-section">
+          <h2 class="form-section-title">Geselecteerde Fiets</h2>
+          
+          <div class="form-grid form-grid--two-column">
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Soort fiets</label>
+              <input type="text" class="form-input" data-field="productType" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Merk</label>
+              <input type="text" class="form-input" data-field="vendor" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Model</label>
+              <input type="text" class="form-input" data-field="productTitle" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Accupakket</label>
+              <input type="text" class="form-input" data-field="battery" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Kleur</label>
+              <input type="text" class="form-input" data-field="color" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Versnellingen</label>
+              <input type="text" class="form-input" data-field="gears" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Maat & Klantgroep</label>
+              <input type="text" class="form-input" data-field="framesize" value="-" readonly>
+            </div>
+
+            <div class="form-group form-group--readonly">
+              <label class="form-label">Adviesprijs</label>
+              <input type="text" class="form-input" data-field="retailPrice" value="-" readonly>
+            </div>
+          </div>
+
+          {%- comment -%} Lease Price - Full Width {%- endcomment -%}
+          <div class="form-group form-group--readonly form-group--highlight">
+            <label class="form-label">Leaseprijs per maand</label>
+            <input type="text" class="form-input form-input--price" data-field="leasePrice" value="-" readonly>
+          </div>
         </div>
 
-        <div class="form-group form-group--readonly">
-          <label class="form-label">Type</label>
-          <div class="form-readonly-value" data-field="productTitle">-</div>
+        {%- comment -%} Customer Information Grid {%- endcomment -%}
+        <div class="form-section">
+          <h2 class="form-section-title">Jouw Gegevens</h2>
+          
+          <div class="form-grid form-grid--two-column">
+            <div class="form-group">
+              <label for="customer-salutation" class="form-label">
+                Aanhef <span class="required">*</span>
+              </label>
+              <select 
+                id="customer-salutation" 
+                name="salutation"
+                class="form-input"
+                required
+                data-customer-field>
+                <option value="">Selecteer...</option>
+                <option value="Dhr.">Dhr.</option>
+                <option value="Mevr.">Mevr.</option>
+                <option value="Anders">Anders</option>
+              </select>
+              <span class="form-error" data-error="salutation"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-initials" class="form-label">
+                Voorletter(s) <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-initials" 
+                name="initials"
+                class="form-input"
+                required
+                placeholder="A.B."
+                data-customer-field>
+              <span class="form-error" data-error="initials"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-prefix" class="form-label">
+                Tussenvoegsel
+              </label>
+              <input 
+                type="text" 
+                id="customer-prefix" 
+                name="prefix"
+                class="form-input"
+                placeholder="van, de, etc."
+                data-customer-field>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-lastname" class="form-label">
+                Achternaam <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-lastname" 
+                name="lastname"
+                class="form-input"
+                required
+                placeholder="Achternaam"
+                data-customer-field>
+              <span class="form-error" data-error="lastname"></span>
+            </div>
+
+            <div class="form-group form-group--full-width">
+              <label for="customer-birthdate" class="form-label">
+                Geboortedatum <span class="required">*</span>
+              </label>
+              <input 
+                type="date" 
+                id="customer-birthdate" 
+                name="birthdate"
+                class="form-input"
+                required
+                data-customer-field>
+              <span class="form-error" data-error="birthdate"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-street" class="form-label">
+                Straat <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-street" 
+                name="street"
+                class="form-input"
+                required
+                placeholder="Straatnaam"
+                data-customer-field>
+              <span class="form-error" data-error="street"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-housenumber" class="form-label">
+                Huisnummer <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-housenumber" 
+                name="housenumber"
+                class="form-input"
+                required
+                placeholder="123"
+                data-customer-field>
+              <span class="form-error" data-error="housenumber"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-addition" class="form-label">
+                Toevoeging <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-addition" 
+                name="addition"
+                class="form-input"
+                required
+                placeholder="A, bis, etc."
+                data-customer-field>
+              <span class="form-error" data-error="addition"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-zipcode" class="form-label">
+                Postcode <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-zipcode" 
+                name="zipcode"
+                class="form-input"
+                required
+                placeholder="1234 AB"
+                pattern="[0-9]{4}\s?[A-Za-z]{2}"
+                data-customer-field>
+              <span class="form-error" data-error="zipcode"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-city" class="form-label">
+                Plaats <span class="required">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="customer-city" 
+                name="city"
+                class="form-input"
+                required
+                placeholder="Plaatsnaam"
+                data-customer-field>
+              <span class="form-error" data-error="city"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-phone" class="form-label">
+                Telefoonnummer <span class="required">*</span>
+              </label>
+              <input 
+                type="tel" 
+                id="customer-phone" 
+                name="phone"
+                class="form-input"
+                required
+                placeholder="06 12345678"
+                data-customer-field>
+              <span class="form-error" data-error="phone"></span>
+            </div>
+
+            <div class="form-group form-group--full-width">
+              <label for="customer-email" class="form-label">
+                E-mailadres <span class="required">*</span>
+              </label>
+              <input 
+                type="email" 
+                id="customer-email" 
+                name="email"
+                class="form-input"
+                required
+                placeholder="jouw@email.nl"
+                data-customer-field>
+              <span class="form-error" data-error="email"></span>
+            </div>
+          </div>
         </div>
 
-        {%- comment -%} Variant options - dynamically filled {%- endcomment -%}
-        <div class="variant-options" data-variant-options>
-          {%- comment -%} JavaScript will populate this {%- endcomment -%}
+        {%- comment -%} Privacy Disclaimer {%- endcomment -%}
+        {%- if section.settings.privacy_text != blank -%}
+          <div class="form-privacy">
+            <div class="rte">
+              {{ section.settings.privacy_text }}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Hidden fields {%- endcomment -%}
+        <input type="hidden" name="product_id" data-hidden="productId">
+        <input type="hidden" name="variant_id" data-hidden="variantId">
+        <input type="hidden" name="lease_price" data-hidden="leasePriceValue">
+        <input type="hidden" name="timestamp" data-hidden="timestamp">
+
+        {%- comment -%} Honeypot {%- endcomment -%}
+        <input type="text" name="honeypot" class="visually-hidden" tabindex="-1" autocomplete="off">
+
+        {%- comment -%} Submit Button {%- endcomment -%}
+        <div class="form-actions">
+          <button type="submit" class="button button--primary lease-request-submit" data-submit-button>
+            <span data-submit-text>{{ section.settings.submit_button_text }}</span>
+            <span data-submit-loading class="hidden">Versturen...</span>
+          </button>
         </div>
 
-        <div class="form-group form-group--readonly form-group--highlight">
-          <label class="form-label">Leaseprijs per maand</label>
-          <div class="form-readonly-value form-readonly-value--price" data-field="leasePrice">-</div>
+        {%- comment -%} Form Error {%- endcomment -%}
+        <div class="form-message form-message--error hidden" data-form-error role="alert">
+          <span class="svg-wrapper">
+            {{- 'icon-error.svg' | inline_asset_content -}}
+          </span>
+          <span data-form-error-text>{{ section.settings.error_message }}</span>
         </div>
-      </div>
+      </form>
 
-      {%- comment -%} Customer Information Section {%- endcomment -%}
-      <div class="form-section">
-        <h2 class="form-section-title">Jouw Gegevens</h2>
-        
-        <div class="form-group">
-          <label for="customer-name" class="form-label">
-            Naam <span class="required">*</span>
-          </label>
-          <input 
-            type="text" 
-            id="customer-name" 
-            name="name"
-            class="form-input"
-            required
-            placeholder="Voor- en achternaam"
-            data-customer-field>
-          <span class="form-error" data-error="name"></span>
-        </div>
-
-        <div class="form-group">
-          <label for="customer-email" class="form-label">
-            E-mailadres <span class="required">*</span>
-          </label>
-          <input 
-            type="email" 
-            id="customer-email" 
-            name="email"
-            class="form-input"
-            required
-            placeholder="jouw@email.nl"
-            data-customer-field>
-          <span class="form-error" data-error="email"></span>
-        </div>
-
-        <div class="form-group">
-          <label for="customer-phone" class="form-label">
-            Telefoonnummer <span class="required">*</span>
-          </label>
-          <input 
-            type="tel" 
-            id="customer-phone" 
-            name="phone"
-            class="form-input"
-            required
-            placeholder="06 12345678"
-            data-customer-field>
-          <span class="form-error" data-error="phone"></span>
-        </div>
-
-        <div class="form-group">
-          <label for="customer-company" class="form-label">
-            Bedrijfsnaam <span class="optional">(optioneel)</span>
-          </label>
-          <input 
-            type="text" 
-            id="customer-company" 
-            name="company"
-            class="form-input"
-            placeholder="Jouw bedrijf B.V."
-            data-customer-field>
-        </div>
-
-        <div class="form-group">
-          <label for="customer-message" class="form-label">
-            Aanvullende opmerkingen <span class="optional">(optioneel)</span>
-          </label>
-          <textarea 
-            id="customer-message" 
-            name="message"
-            class="form-textarea"
-            rows="4"
-            placeholder="Eventuele vragen of opmerkingen..."
-            data-customer-field></textarea>
-        </div>
-      </div>
-
-      {%- comment -%} Hidden fields for backend {%- endcomment -%}
-      <input type="hidden" name="product_id" data-hidden="productId">
-      <input type="hidden" name="variant_id" data-hidden="variantId">
-      <input type="hidden" name="lease_price" data-hidden="leasePriceValue">
-      <input type="hidden" name="timestamp" data-hidden="timestamp">
-
-      {%- comment -%} Honeypot for spam protection {%- endcomment -%}
-      <input type="text" name="honeypot" class="visually-hidden" tabindex="-1" autocomplete="off">
-
-      {%- comment -%} Submit Section {%- endcomment -%}
-      <div class="form-actions">
-        <button type="submit" class="button button--primary lease-request-submit" data-submit-button>
-          <span data-submit-text>{{ section.settings.submit_button_text }}</span>
-          <span data-submit-loading class="hidden">Versturen...</span>
-        </button>
-        <a href="{{ routes.all_products_collection_url }}" class="button button--secondary">
-          Terug naar fietsen
-        </a>
-      </div>
-
-      {%- comment -%} Form-level error message {%- endcomment -%}
-      <div class="form-message form-message--error hidden" data-form-error role="alert">
-        <span class="svg-wrapper">
-          {{- 'icon-error.svg' | inline_asset_content -}}
-        </span>
-        <span data-form-error-text>{{ section.settings.error_message }}</span>
-      </div>
-    </form>
-
-    {%- comment -%} Success state - shown after submission {%- endcomment -%}
-    <div class="lease-request-success hidden" data-success-message>
-      <div class="lease-request-success__content">
-        <span class="svg-wrapper svg-wrapper--success">
-          {{- 'icon-checkmark.svg' | inline_asset_content -}}
-        </span>
-        <div>
-          <h2>Aanvraag verzonden!</h2>
-          <p>{{ section.settings.success_message }}</p>
-          <a href="{{ routes.all_products_collection_url }}" class="button">
-            Terug naar fietsen
-          </a>
+      {%- comment -%} Success State {%- endcomment -%}
+      <div class="lease-request-success hidden" data-success-message>
+        <div class="lease-request-success__content">
+          <span class="svg-wrapper svg-wrapper--success">
+            {{- 'icon-checkmark.svg' | inline_asset_content -}}
+          </span>
+          <div>
+            <h2>Aanvraag verzonden!</h2>
+            <p>{{ section.settings.success_message }}</p>
+            <a href="{{ routes.all_products_collection_url }}" class="button">
+              Terug naar fietsen
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -192,6 +395,20 @@
   const submitButton = document.querySelector('[data-submit-button]');
   const formError = document.querySelector('[data-form-error]');
   
+  // Field mapping for variant options to form fields
+  const fieldMapping = {
+    'Framesize': 'framesize',
+    'Maat': 'framesize',
+    'Size': 'framesize',
+    'Kleur': 'color',
+    'Color': 'color',
+    'Accucapaciteit': 'battery',
+    'Accu': 'battery',
+    'Battery': 'battery',
+    'Versnellingen': 'gears',
+    'Gears': 'gears'
+  };
+  
   // Load data from sessionStorage
   function loadLeaseData() {
     try {
@@ -204,7 +421,6 @@
       
       const data = JSON.parse(dataString);
       
-      // Validate required fields
       if (!data.productTitle || !data.variantId || !data.leasePrice) {
         showNoDataError();
         return null;
@@ -218,7 +434,6 @@
     }
   }
   
-  // Show no data error state
   function showNoDataError() {
     noDataError.classList.remove('hidden');
     form.classList.add('hidden');
@@ -226,13 +441,22 @@
   
   // Populate form with data
   function populateForm(data) {
-    // Product info
-    setFieldValue('vendor', data.productVendor || 'n/a');
-    setFieldValue('productTitle', data.productTitle);
-    setFieldValue('leasePrice', data.leasePrice);
+    // Basic product info
+    setFieldValue('vendor', data.productVendor || '-');
+    setFieldValue('productTitle', data.productTitle || '-');
+    setFieldValue('productType', data.productType || '-');
+    setFieldValue('leasePrice', data.leasePrice || '-');
+    setFieldValue('retailPrice', data.retailPrice || '-');
     
-    // Variant options
-    populateVariantOptions(data.variantOptions);
+    // Map variant options to specific fields
+    if (data.variantOptions) {
+      Object.entries(data.variantOptions).forEach(([key, value]) => {
+        const fieldName = fieldMapping[key];
+        if (fieldName) {
+          setFieldValue(fieldName, value);
+        }
+      });
+    }
     
     // Hidden fields
     setHiddenField('productId', data.productId);
@@ -240,49 +464,21 @@
     setHiddenField('leasePriceValue', data.leasePrice.replace(/[^0-9.,]/g, ''));
     setHiddenField('timestamp', data.timestamp);
     
-    // Show form
     form.classList.remove('hidden');
   }
   
-  // Set field value
   function setFieldValue(fieldName, value) {
     const field = document.querySelector(`[data-field="${fieldName}"]`);
     if (field) {
-      field.textContent = value || '-';
+      field.value = value || '-';
     }
   }
   
-  // Set hidden field value
   function setHiddenField(fieldName, value) {
     const field = document.querySelector(`[data-hidden="${fieldName}"]`);
     if (field) {
       field.value = value || '';
     }
-  }
-  
-  // Populate variant options
-  function populateVariantOptions(options) {
-    const container = document.querySelector('[data-variant-options]');
-    if (!container || !options) return;
-    
-    container.innerHTML = '';
-    
-    Object.entries(options).forEach(([key, value]) => {
-      const div = document.createElement('div');
-      div.className = 'form-group form-group--readonly';
-      div.innerHTML = `
-        <label class="form-label">${escapeHtml(key)}</label>
-        <div class="form-readonly-value">${escapeHtml(value)}</div>
-      `;
-      container.appendChild(div);
-    });
-  }
-  
-  // Escape HTML
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
   
   // Validate form
@@ -324,6 +520,32 @@
       }
     }
     
+    // Validate zipcode
+    const zipcodeField = form.querySelector('[name="zipcode"]');
+    if (zipcodeField && zipcodeField.value.trim()) {
+      const zipcodeRegex = /^[0-9]{4}\s?[A-Za-z]{2}$/;
+      if (!zipcodeRegex.test(zipcodeField.value.trim())) {
+        showFieldError(zipcodeField, 'Voer een geldige postcode in (1234 AB)');
+        isValid = false;
+      }
+    }
+    
+    // Validate birthdate (must be 18+)
+    const birthdateField = form.querySelector('[name="birthdate"]');
+    if (birthdateField && birthdateField.value) {
+      const birthDate = new Date(birthdateField.value);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) {
+        showFieldError(birthdateField, 'Je moet minimaal 18 jaar zijn');
+        isValid = false;
+      }
+    }
+    
     // Check honeypot
     const honeypot = form.querySelector('[name="honeypot"]');
     if (honeypot && honeypot.value) {
@@ -333,7 +555,6 @@
     return isValid;
   }
   
-  // Show field error
   function showFieldError(field, message) {
     field.classList.add('form-input--error');
     const errorEl = document.querySelector(`[data-error="${field.name}"]`);
@@ -346,7 +567,6 @@
   function handleSubmit(event) {
     event.preventDefault();
     
-    // Validate
     if (!validateForm()) {
       return;
     }
@@ -359,64 +579,29 @@
     // Collect form data
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    
-    // Remove honeypot from data
     delete data.honeypot;
     
-    // TODO: Replace this with actual API call to your custom app
     console.log('Form data to submit:', data);
     
-    // Simulate API call (for MVP)
+    // Simulate API call (MVP)
     setTimeout(() => {
-      // Show success message
       showSuccess();
-      
-      // Clear sessionStorage
       sessionStorage.removeItem('leaseRequest');
       
-      // Re-enable button (in case user goes back)
       submitButton.disabled = false;
       document.querySelector('[data-submit-text]').classList.remove('hidden');
       document.querySelector('[data-submit-loading]').classList.add('hidden');
     }, 1000);
     
-    // LATER: Replace above with actual fetch call
-    /*
-    fetch('YOUR_CUSTOM_APP_URL', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.json();
-    })
-    .then(result => {
-      showSuccess();
-      sessionStorage.removeItem('leaseRequest');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showError();
-    })
-    .finally(() => {
-      submitButton.disabled = false;
-      document.querySelector('[data-submit-text]').classList.remove('hidden');
-      document.querySelector('[data-submit-loading]').classList.add('hidden');
-    });
-    */
+    // TODO: Replace with actual fetch to your custom app
   }
   
-  // Show success state
   function showSuccess() {
     form.classList.add('hidden');
     successMessage.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   
-  // Show error state
   function showError() {
     formError.classList.remove('hidden');
     window.scrollTo({ top: formError.offsetTop - 100, behavior: 'smooth' });
@@ -429,12 +614,11 @@
       populateForm(data);
     }
     
-    // Add form submit listener
     if (form) {
       form.addEventListener('submit', handleSubmit);
     }
     
-    // Real-time validation feedback
+    // Real-time validation
     const inputs = form.querySelectorAll('[data-customer-field]');
     inputs.forEach(input => {
       input.addEventListener('blur', () => {
@@ -449,7 +633,6 @@
     });
   }
   
-  // Run on page load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
@@ -459,27 +642,83 @@
 </script>
 
 {% stylesheet %}
+input::placeholder {
+  opacity: 0.5;
+}
   .lease-request-section {
     width: 100%;
   }
 
-  .lease-request-container {
-    max-width: 700px;
-    margin: 0 auto;
+  /* Two Column Layout */
+  .lease-request-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap-3xl);
+  }
+
+  @media screen and (min-width: 990px) {
+    .lease-request-layout {
+      grid-template-columns: 700px 1fr;
+      align-items: start;
+    }
+  }
+
+  /* Left Sidebar */
+  .lease-request-sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + var(--padding-lg));
   }
 
   .lease-request-heading {
     margin-bottom: var(--margin-md);
-    text-align: center;
   }
 
   .lease-request-subheading {
-    text-align: center;
     color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
-    margin-bottom: var(--margin-2xl);
+    margin-bottom: var(--margin-xl);
   }
 
-  /* Form sections */
+  .lease-request-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+  }
+
+  .content-block {
+    padding: var(--padding-md);
+    background: rgb(var(--color-foreground-rgb) / 0.03);
+    border-radius: var(--style-border-radius-inputs);
+  }
+
+  .content-block h3,
+  .content-block h4 {
+    margin-bottom: var(--margin-sm);
+  }
+
+  .icon-with-text-item {
+    display: flex;
+    gap: var(--gap-md);
+    align-items: flex-start;
+  }
+
+  .icon-wrapper {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+  }
+
+  .content-block--image img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--style-border-radius-inputs);
+  }
+
+  /* Form Wrapper */
+  .lease-request-form-wrapper {
+    width: 100%;
+  }
+
+  /* Form Sections */
   .form-section {
     background: var(--color-background);
     border: var(--style-border-width) solid var(--color-border);
@@ -495,13 +734,30 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  /* Form groups */
-  .form-group {
-    margin-bottom: var(--margin-lg);
+  /* Form Grid - Two Column */
+  .form-grid {
+    display: grid;
+    gap: var(--gap-md);
   }
 
-  .form-group:last-child {
-    margin-bottom: 0;
+  .form-grid--two-column {
+    grid-template-columns: 1fr;
+  }
+
+  @media screen and (min-width: 750px) {
+    .form-grid--two-column {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .form-group--full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* Form Groups */
+  .form-group {
+    display: flex;
+    flex-direction: column;
   }
 
   .form-label {
@@ -515,14 +771,9 @@
     color: var(--color-error, #d00);
   }
 
-  .optional {
-    color: rgb(var(--color-foreground-rgb) / var(--opacity-60));
-    font-weight: normal;
-  }
-
-  /* Form inputs */
+  /* Form Inputs */
   .form-input,
-  .form-textarea {
+  select.form-input {
     width: 100%;
     background-color: var(--color-input-background);
     color: var(--color-input-text);
@@ -535,7 +786,7 @@
   }
 
   .form-input:focus,
-  .form-textarea:focus {
+  select.form-input:focus {
     outline: none;
     border-color: var(--color-foreground);
     box-shadow: 0 0 0 1px var(--color-foreground);
@@ -545,59 +796,30 @@
     border-color: var(--color-error, #d00);
   }
 
-  .form-textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-
-  /* Readonly fields */
-  .form-group--readonly {
+  /* Readonly Fields */
+  .form-group--readonly .form-input {
     background: rgb(var(--color-foreground-rgb) / 0.03);
-    padding: var(--padding-md);
-    border-radius: var(--style-border-radius-inputs);
-  }
-
-  .form-group--readonly .form-label {
-    font-size: var(--font-size--xs);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgb(var(--color-foreground-rgb) / var(--opacity-60));
-    margin-bottom: var(--margin-2xs);
-  }
-
-  .form-readonly-value {
-    font-weight: var(--font-weight-bold);
-    font-size: var(--font-size--md);
+    cursor: not-allowed;
   }
 
   .form-group--highlight {
-    background: var(--color-primary, #000);
-    color: var(--color-background, #fff);
+    margin-top: var(--margin-md);
+  }
+
+  .form-group--highlight .form-input {
+  /*  background: var(--color-primary, #000);
+    color: var(--color-background, #fff);*/
+    border-color: var(--color-primary, #000);
+    font-size: var(--font-size--xl);
+    font-weight: var(--font-weight-bold);
+  /*  text-align: center;*/
   }
 
   .form-group--highlight .form-label {
     color: inherit;
-    opacity: 0.8;
   }
 
-  .form-readonly-value--price {
-    font-size: var(--font-size--2xl);
-    font-weight: var(--font-weight-bold);
-  }
-
-  /* Variant options */
-  .variant-options {
-    display: grid;
-    gap: var(--gap-sm);
-  }
-
-  @media screen and (min-width: 750px) {
-    .variant-options {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  /* Form errors */
+  /* Form Errors */
   .form-error {
     display: block;
     color: var(--color-error, #d00);
@@ -606,31 +828,34 @@
     min-height: 1.2em;
   }
 
-  /* Form actions */
+  /* Privacy Disclaimer */
+  .form-privacy {
+    padding: var(--padding-md);
+    background: rgb(var(--color-foreground-rgb) / 0.03);
+    border-radius: var(--style-border-radius-inputs);
+    margin-bottom: var(--margin-lg);
+    font-size: var(--font-size--sm);
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+  }
+
+  .form-privacy a {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
+  /* Form Actions */
   .form-actions {
     display: flex;
-    gap: var(--gap-md);
-    flex-wrap: wrap;
+    justify-content: center;
     margin-top: var(--margin-2xl);
   }
 
   .form-actions .button {
-    flex: 1;
     min-width: 200px;
-    justify-content: center;
+    padding-inline: var(--padding-4xl);
   }
 
-  @media screen and (max-width: 749px) {
-    .form-actions {
-      flex-direction: column;
-    }
-    
-    .form-actions .button {
-      width: 100%;
-    }
-  }
-
-  /* Form messages */
+  /* Form Messages */
   .form-message {
     display: flex;
     align-items: flex-start;
@@ -652,7 +877,7 @@
     height: var(--icon-size-sm);
   }
 
-  /* Error state */
+  /* Error State */
   .lease-request-error {
     text-align: center;
     padding: var(--padding-4xl) var(--padding-xl);
@@ -679,7 +904,7 @@
     margin-bottom: var(--margin-xl);
   }
 
-  /* Success state */
+  /* Success State */
   .lease-request-success {
     text-align: center;
     padding: var(--padding-4xl) var(--padding-xl);
@@ -711,16 +936,73 @@
     display: none !important;
   }
 
-  /* Loading state */
   [data-submit-button]:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media screen and (max-width: 989px) {
+    .lease-request-sidebar {
+      position: relative;
+      top: auto;
+    }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
   "name": "Lease Request Form",
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Text Block",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "icon_with_text",
+      "name": "Icon with Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon name",
+          "info": "e.g., 'check', 'star', 'truck'"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
   "settings": [
     {
       "type": "text",
@@ -729,10 +1011,10 @@
       "default": "Lease Aanvraag"
     },
     {
-      "type": "textarea",
+      "type": "richtext",
       "id": "subheading",
       "label": "Subheading",
-      "default": "Vul onderstaand formulier in om een vrijblijvende offerte aan te vragen."
+      "default": "<p>Vul onderstaand formulier in om een vrijblijvende offerte aan te vragen.</p>"
     },
     {
       "type": "text",
@@ -751,6 +1033,12 @@
       "id": "error_message",
       "label": "Error Message",
       "default": "Er is iets misgegaan. Probeer het opnieuw of neem contact met ons op."
+    },
+    {
+      "type": "html",
+      "id": "privacy_text",
+      "label": "Privacy Text",
+      "default": "Voor jouw gegevens zijn Elbuco B.V. en Fietsleasewinkel gezamenlijk verantwoordelijk."
     },
     {
       "type": "color_scheme",
