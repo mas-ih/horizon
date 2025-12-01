@@ -83,8 +83,10 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     const leasePriceDisplay = document.querySelector('[data-lease-price-display]');
     const leasePrice = leasePriceDisplay ? leasePriceDisplay.textContent.trim() : '';
     
-    // Get product title
+    // Get product title and vendor and price
     const productTitle = '{{ product_resource.title | escape }}';
+    const vendor = '{{ product_resource.vendor | escape }}';
+    const retailPrice = '{{ product_resource.price | escape }}';
     
     // Get variant options
     const variantPicker = document.querySelector(`variant-picker[data-product-id="${productId}"]`);
@@ -111,11 +113,13 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     
     // Store data in sessionStorage for the lease request page
     const leaseRequestData = {
+      vendor: vendor,
       productHandle: productHandle,
       productTitle: productTitle,
       productId: productId,
       variantId: variantId,
       variantOptions: variantOptions,
+      retailPrice: retailPrice,
       leasePrice: leasePrice,
       timestamp: new Date().toISOString()
     };
@@ -123,7 +127,7 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     sessionStorage.setItem('leaseRequest', JSON.stringify(leaseRequestData));
     
     // Debug: log to console
-    //console.log('Lease request data:', leaseRequestData);
+    console.log('Lease request data:', leaseRequestData);
     
     // TODO: Navigate to lease request page
     // For now, show alert (we'll replace this later)

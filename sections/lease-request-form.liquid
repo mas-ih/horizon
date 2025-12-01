@@ -398,11 +398,13 @@
   // Field mapping for variant options to form fields
   const fieldMapping = {
     'Framesize': 'framesize',
+    'Framemaat':  'framesize',
     'Maat': 'framesize',
     'Size': 'framesize',
     'Kleur': 'color',
     'Color': 'color',
     'Accucapaciteit': 'battery',
+    'Accupakket': 'battery',
     'Accu': 'battery',
     'Battery': 'battery',
     'Versnellingen': 'gears',
@@ -442,11 +444,13 @@
   // Populate form with data
   function populateForm(data) {
     // Basic product info
-    setFieldValue('vendor', data.productVendor || '-');
+    setFieldValue('vendor', data.vendor || '-');
     setFieldValue('productTitle', data.productTitle || '-');
     setFieldValue('productType', data.productType || '-');
     setFieldValue('leasePrice', data.leasePrice || '-');
-    setFieldValue('retailPrice', data.retailPrice || '-');
+    // Zet advies prijs om naar euro:
+    setFieldValue('retailPrice', formatEuroCents(data.retailPrice));
+
     
     // Map variant options to specific fields
     if (data.variantOptions) {
@@ -563,6 +567,14 @@
     }
   }
   
+  // centen → euro formatter
+  function formatEuroCents(cents) {
+    if (!cents) return '-';
+    return (cents / 100).toLocaleString('nl-NL', {
+      style: 'currency',
+      currency: 'EUR'
+    });
+  }
   // Handle form submission
   function handleSubmit(event) {
     event.preventDefault();

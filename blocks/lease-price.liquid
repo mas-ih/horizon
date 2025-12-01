@@ -28,13 +28,13 @@
       data-lease-price-display
     >
       {%- if selected_variant.metafields.custom.leaseprice != blank -%}
-        €{{ selected_variant.metafields.custom.leaseprice | round: 2 }}
+        €{{ selected_variant.metafields.custom.leaseprice | plus: selected_variant.metafields.custom.accu_toeslag | round: 2 }}
       {%- else -%}
         {{ block_settings.fallback_text | default: 'Prijs op aanvraag' }}
       {%- endif -%}
     </span>
 
-    {%- if block_settings.suffix != blank -%}
+    {%- if block_settings.suffix != blank and selected_variant.metafields.custom.leaseprice != blank -%}
       <span class="lease-price-suffix {{ block_settings.suffix_type_preset }}">
         {{ block_settings.suffix }}
       </span>
@@ -49,8 +49,8 @@
   {
     {%- for variant in product_resource.variants -%}
       "{{ variant.id }}": {
-        "price": {{ variant.metafields.custom.leaseprice | default: 0 | json }},
-        "formatted": "€{{ variant.metafields.custom.leaseprice | default: 0 | round: 2 }}"
+        "price": {{ variant.metafields.custom.leaseprice |plus: variant.metafields.custom.accu_toeslag | default: 0 | json }},
+        "formatted": "€{{ variant.metafields.custom.leaseprice |plus: variant.metafields.custom.accu_toeslag | default: 0 | round: 2 }}"
       }{% unless forloop.last %},{% endunless %}
     {%- endfor -%}
   }
