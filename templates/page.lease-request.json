@@ -1,13 +1,53 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
       "type": "lease-request-form",
+      "blocks": {
+        "icon_with_text_4k9b74": {
+          "type": "icon_with_text",
+          "settings": {
+            "icon": "check",
+            "heading": "Stap 1",
+            "text": "Controleer je fiets"
+          }
+        },
+        "icon_with_text_nGzWUT": {
+          "type": "icon_with_text",
+          "settings": {
+            "icon": "check",
+            "heading": "Stap 2",
+            "text": "Vul je gegevens"
+          }
+        },
+        "icon_with_text_nAdq3H": {
+          "type": "icon_with_text",
+          "settings": {
+            "icon": "check",
+            "heading": "Stap 3",
+            "text": "Wij doen de rest"
+          }
+        }
+      },
+      "block_order": [
+        "icon_with_text_4k9b74",
+        "icon_with_text_nGzWUT",
+        "icon_with_text_nAdq3H"
+      ],
       "settings": {
         "heading": "Lease Aanvraag",
         "subheading": "<p>Vul onderstaand formulier in om een vrijblijvende offerte aan te vragen.</p>",
+        "submit_button_text": "Verstuur aanvraag",
         "success_message": "Bedankt voor je aanvraag! We hebben je aanvraag ontvangen en gaan voor je aan de slag..",
         "error_message": "Er is iets misgegaan. Probeer het opnieuw of neem contact met ons op.",
-        "submit_button_text": "Verstuur aanvraag",
         "privacy_text": "Voor jouw gegevens zijn Elbuco B.V. en Fietsleasewinkel gezamenlijk verantwoordelijk. Lees hier meer over in het <a href=\"/pages/privacy-elbuco\" target=\"_blank\">privacy statement van Elbuco B.V.</a> en het <a href=\"/pages/privacy-fietsleasewinkel\" target=\"_blank\">privacy statement van Fietsleasewinkel</a>.",
         "color_scheme": "scheme-1",
         "padding-block-start": 48,
