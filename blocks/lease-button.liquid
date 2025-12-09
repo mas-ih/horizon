@@ -65,6 +65,15 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     console.warn('Could not determine variant ID');
     return null;
   };
+
+  // // parse leaseprice naar een nummer
+  function parseLeasePrice(leasePriceString) {
+    if (!leasePriceString) return 0;
+
+    const numericString = leasePriceString.replace(/[^\d,.-]/g, '').replace(',', '.');
+    const price = parseFloat(numericString);
+    return isNaN(price) ? 0 : price;
+  }
   
   // Global function to handle lease button clicks
   window.handleLeaseButtonClick = function(button) {
@@ -82,6 +91,15 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     // Get lease price from the lease-price block on the same page
     const leasePriceDisplay = document.querySelector('[data-lease-price-display]');
     const leasePrice = leasePriceDisplay ? leasePriceDisplay.textContent.trim() : '';
+  
+    //Check om te bepalen of de leaseprice meer dan 0 is
+    const leasePriceCheck = parseLeasePrice(leasePrice);
+    // Als er geen leaseprice is, disable de leaseknop
+   if (leasePriceCheck <= 0) {
+      button.disabled = true;
+      button.classList.add('disabled');
+      return; // stop het proces
+    }
     
     // Get product title and vendor and price
     const productTitle = '{{ product_resource.title | escape }}';
@@ -129,9 +147,7 @@ assign selected_variant = product_resource.selected_or_first_available_variant
     // Debug: log to console
     console.log('Lease request data:', leaseRequestData);
     
-    // TODO: Navigate to lease request page
-    // For now, show alert (we'll replace this later)
-   // alert('Lease aanvraag voor: ' + productTitle + '\nVariant ID: ' + variantId + '\nLeaseprijs: ' + leasePrice + '\n\nData opgeslagen! Check console voor details.');
+    
     
     // Navigate to lease request page
     // Add small delay to ensure sessionStorage is saved
@@ -139,6 +155,7 @@ assign selected_variant = product_resource.selected_or_first_available_variant
       window.location.href = '/pages/lease-aanvraag';
     }, 100);
   };
+  
 </script>
 
 {% stylesheet %}
