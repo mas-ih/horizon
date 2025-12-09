@@ -587,16 +587,21 @@
     document.querySelector('[data-submit-text]').classList.add('hidden');
     document.querySelector('[data-submit-loading]').classList.remove('hidden');
     
+    // Hide any previous errors
+    if (formError) {
+      formError.classList.add('hidden');
+    }
+    
     // Collect form data
     const formData = new FormData(form);
     
     // Get session storage data for variant info
     const leaseData = loadLeaseData();
     
-    // Map form field names to backend expected names
+    // Map form field names
     const data = {
       // variant ID
-      variantId: formData.get('variantId') || leaseData?.variantId,
+      variantId: formData.get('variant_id') || leaseData?.variantId,
       
       // Customer info 
       aanhef: formData.get('salutation') === '1' ? 'Dhr.' : formData.get('salutation') === '2' ? 'Mevr.' : 'Anders',
@@ -622,7 +627,7 @@
     console.log('Form data to submit:', data);
     
     try {
-      // POST to Shopify app proxy URL
+      // POST form data
       const response = await fetch('/apps/lease', {
         method: 'POST',
         headers: {
@@ -631,21 +636,54 @@
         body: JSON.stringify(data)
       });
       
-      const result = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
       
-      if (result.success) {
+      // Get response as text first to see what we're getting
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      // Check if we got any content
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+      
+      // Try to parse as JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        console.error('Response text was:', responseText);
+        throw new Error('Invalid JSON response from server');
+      }
+      
+      // Check if request was successful
+      if (response.ok && result.success) {
         // Success!
         showSuccess();
         sessionStorage.removeItem('leaseRequest');
       } else {
         // Error from backend
-        console.error('Backend error:', result.error);
-        showError(result.error || 'Er is een fout opgetreden. Probeer het opnieuw.');
+        console.error('Backend error:', result.error || result);
+        showError(result.error || result.message || 'Er is een fout opgetreden. Probeer het opnieuw.');
       }
       
     } catch (error) {
       console.error('Error submitting form:', error);
-      showError('Er is een fout opgetreden bij het versturen van het formulier. Probeer het opnieuw.');
+      
+      // More specific error messages
+      let errorMessage = 'Er is een fout opgetreden bij het versturen van het formulier. Probeer het opnieuw.';
+      
+      if (error.message.includes('Empty response')) {
+        errorMessage = 'Geen response van de server ontvangen. Probeer het opnieuw.';
+      } else if (error.message.includes('Invalid JSON')) {
+        errorMessage = 'Onverwachte response van de server. Neem contact op met support.';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Kan geen verbinding maken met de server. Controleer je internetverbinding.';
+      }
+      
+      showError(errorMessage);
     } finally {
       // Re-enable submit button
       submitButton.disabled = false;
@@ -662,19 +700,26 @@
   
   function showError(message) {
     if (formError) {
-      // If you have a data attribute for error message text, update it
-      const errorText = formError.querySelector('[data-error-text]');
+      // Update error message text
+      const errorText = formError.querySelector('[data-form-error-text]');
       if (errorText) {
         errorText.textContent = message || 'Er is een fout opgetreden. Probeer het opnieuw.';
       }
       
       formError.classList.remove('hidden');
-      window.scrollTo({ top: formError.offsetTop - 100, behavior: 'smooth' });
       
-      // Auto-hide after 10 seconds
+      // Scroll to error message
+      setTimeout(() => {
+        window.scrollTo({ 
+          top: formError.offsetTop - 100, 
+          behavior: 'smooth' 
+        });
+      }, 100);
+      
+      // Auto-hide after 15 seconds
       setTimeout(() => {
         formError.classList.add('hidden');
-      }, 10000);
+      }, 15000);
     } else {
       // Fallback to alert if no error container
       alert(message || 'Er is een fout opgetreden. Probeer het opnieuw.');
